@@ -40,19 +40,53 @@ run_trimmomatic () {
     mkdir trimmomatic_output
 
     for i in "${!SAMPLE1[@]}"; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd):/data staphb/trimmomatic:0.39 trimmomatic PE /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz /data/trimmomatic_output/"${SAMPLE1[i]}".trim.fastq.gz /data/trimmomatic_output/"${SAMPLE1[i]}"un.trim.fastq.gz /data/trimmomatic_output/"${SAMPLE2[i]}".trim.fastq.gz /data/trimmomatic_output/"${SAMPLE2[i]}"un.trim.fastq.gz ILLUMINACLIP:/Trimmomatic-0.39/adapters/NexteraPE-PE.fa:2:40:15
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data staphb/trimmomatic:0.39 trimmomatic PE /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz /data/trimmomatic_output/"${SAMPLE1[i]}".trim.fastq.gz /data/trimmomatic_output/"${SAMPLE1[i]}"un.trim.fastq.gz /data/trimmomatic_output/"${SAMPLE2[i]}".trim.fastq.gz /data/trimmomatic_output/"${SAMPLE2[i]}"un.trim.fastq.gz ILLUMINACLIP:/Trimmomatic-0.39/adapters/TruSeq3-PE.fa:2:30:15 TRAILING:30 MINLEN:50
     done
 
-    #mv "${SAMPLE1[i]}".trim.fastq.gz "${SAMPLE1[i]}"un.trim.fastq.gz "${SAMPLE2[i]}".trim.fastq.gz "${SAMPLE2[i]}"un.trim.fastq.gz trimmomatic_output/
-    #mv *.trim.fastq.gz *un.trim.fastq.gz trimmomatic_output/
+   
 
+
+}
+
+
+run_fastqc_on_trimmomatic_data(){
+    mkdir fastqc_output_trimmomatic_data
+
+    for sample in $SAMPLES; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data  staphb/fastqc:0.11.9 fastqc -t 20  -o /data/fastqc_output_trimmomatic_data /data/trimmomatic_output/${sample}.trim.fastq.gz
+    done
+}
+
+
+run_bfc_on_trimmomatic_data(){
+
+    mkdir -p bfc_output/{bfc_with_trimmomatic_output,bfc_with_fastp_output}
+    
+    
+   
+    for sample in $SAMPLES; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data jfroula/bfc:181 bfc -s 180m -t16 /data/trimmomatic_output/${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}_1.fastq.gz
+    done
+    
+
+    mv bfc_corrected_trimmomatic_*.fastq.gz
+
+for sample in $SAMPLES; do
+    bfc -s 180m -t16 ${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}.fastq.gz
+done
+}
+
+run_multiqc_on_fastqc_output_trimmomatic_data(){
+    docker run -t -v $(pwd)/fastqc_output_trimmomatic_data:`pwd` -w `pwd` ewels/multiqc:v1.11
 
 }
 
 main(){
     #run_fastp
     #run_fastqc_on_fastp_data
-    run_trimmomatic
+    #run_trimmomatic
+###########################
+    run_fastqc_on_trimmomatic_data
 
 }
 
