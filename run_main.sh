@@ -68,12 +68,12 @@ run_bfc_on_trimmomatic_data(){
         docker run --platform linux/amd64 -it --rm -v $(pwd):/data jfroula/bfc:181 bfc -s 180m -t16 /data/trimmomatic_output/${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}_1.fastq.gz
     done
     
+    mv bfc_corrected_trimmomatic_*.fastq.gz bfc_output/bfc_with_trimmomatic_output
+    
 
-    mv bfc_corrected_trimmomatic_*.fastq.gz
-
-for sample in $SAMPLES; do
-    bfc -s 180m -t16 ${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}.fastq.gz
-done
+#for sample in $SAMPLES; do
+#    bfc -s 180m -t16 ${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}.fastq.gz
+#done
 }
 
 run_multiqc_on_fastqc_output_trimmomatic_data(){
@@ -85,8 +85,9 @@ main(){
     #run_fastp
     #run_fastqc_on_fastp_data
     #run_trimmomatic
+    #run_fastqc_on_trimmomatic_data
 ###########################
-    run_fastqc_on_trimmomatic_data
+    run_bfc_on_trimmomatic_data
 
 }
 
