@@ -86,16 +86,26 @@ run_multiqc_on_fastp_output_trimmomatic_data(){
 
 }
 
+
+
+run_illumina_cleanup(){
+    mkdir illumina_cleanup_output
+    ./illumina-cleanup/bin/illumina-cleanup --fastqs /media/szymon/Dysk_1/comp_genomics/genomics_analysis4/IC_fastqs.txt --fastqs /media/szymon/Dysk_1/Genomes_analysis/illumina-cleanup/bin/IC_fastqs.txt --max_cpus 10
+
+}
+
+
+
 main(){
     #run_fastp
     #run_fastqc_on_fastp_data
     #run_trimmomatic
     #run_fastqc_on_trimmomatic_data
 ###########################
-    #run_bfc_on_trimmomatic_data #działa bardzo długo - sprawdzić multithreading
+    #run_bfc_on_trimmomatic_data #działa bardzo długo - sprawdzić multithreading - wyjściowe pliki ponad 10GB
 ###########################    
     #run_multiqc_on_fastqc_output_trimmomatic_data
 }   #run_multiqc_on_fastp_output_trimmomatic_data
-    
+
 main
 
