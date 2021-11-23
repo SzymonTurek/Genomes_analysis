@@ -81,15 +81,21 @@ run_multiqc_on_fastqc_output_trimmomatic_data(){
 
 }
 
+run_multiqc_on_fastp_output_trimmomatic_data(){
+    docker run -t -v $(pwd)/fastqc_output_fastp_data:`pwd` -w `pwd` ewels/multiqc:v1.11
+
+}
+
 main(){
     #run_fastp
     #run_fastqc_on_fastp_data
     #run_trimmomatic
     #run_fastqc_on_trimmomatic_data
 ###########################
-    run_bfc_on_trimmomatic_data
-
-}
-
+    #run_bfc_on_trimmomatic_data #działa bardzo długo - sprawdzić multithreading
+###########################    
+    #run_multiqc_on_fastqc_output_trimmomatic_data
+}   #run_multiqc_on_fastp_output_trimmomatic_data
+    
 main
 
