@@ -36,11 +36,25 @@ run_fastqc_on_fastp_data (){
     done
 }
 
+run_trimmomatic () {
+    mkdir trimmomatic_output
 
+    for i in "${!SAMPLE1[@]}"; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data staphb/trimmomatic:0.39 trimmomatic PE /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz /data/trimmomatic_output/"${SAMPLE1[i]}".trim.fastq.gz /data/trimmomatic_output/"${SAMPLE1[i]}"un.trim.fastq.gz /data/trimmomatic_output/"${SAMPLE2[i]}".trim.fastq.gz /data/trimmomatic_output/"${SAMPLE2[i]}"un.trim.fastq.gz ILLUMINACLIP:/Trimmomatic-0.39/adapters/NexteraPE-PE.fa:2:40:15
+    done
+
+    #mv "${SAMPLE1[i]}".trim.fastq.gz "${SAMPLE1[i]}"un.trim.fastq.gz "${SAMPLE2[i]}".trim.fastq.gz "${SAMPLE2[i]}"un.trim.fastq.gz trimmomatic_output/
+    #mv *.trim.fastq.gz *un.trim.fastq.gz trimmomatic_output/
+
+
+}
 
 main(){
     #run_fastp
     #run_fastqc_on_fastp_data
-    
+    run_trimmomatic
+
 }
+
+main
 
