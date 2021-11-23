@@ -71,9 +71,6 @@ run_bfc_on_trimmomatic_data(){
     mv bfc_corrected_trimmomatic_*.fastq.gz bfc_output/bfc_with_trimmomatic_output
     
 
-#for sample in $SAMPLES; do
-#    bfc -s 180m -t16 ${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}.fastq.gz
-#done
 }
 
 run_multiqc_on_fastqc_output_trimmomatic_data(){
@@ -92,10 +89,52 @@ run_illumina_cleanup(){
     mkdir illumina_cleanup_output
     ./illumina-cleanup/bin/illumina-cleanup --fastqs /media/szymon/Dysk_1/comp_genomics/genomics_analysis4/IC_fastqs.txt --fastqs /media/szymon/Dysk_1/Genomes_analysis/illumina-cleanup/bin/IC_fastqs.txt --max_cpus 10
     mv /media/szymon/Dysk_1/Genomes_analysis/illumina-cleanup/bin/*_IC /media/szymon/Dysk_1/Genomes_analysis/illumina_cleanup_output
+    # mv /media/szymon/Dysk_1/Genomes_analysis/*_IC /media/szymon/Dysk_1/Genomes_analysis/illumina_cleanup_output
+}
+
+run_subread_index(){
+    mkdir subread_output
+    mkdir subread_B10_index
+
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data nanozoo/subread:2.0.2--53f5da6 subread-buildindex -o /data/subread_B10_index/subread_index /data/referencyjny_genom_b10/pb_b10_ill1.fasta
+
+    #mv index.00.b.array index.00.b.tab index.files index.log index.reads subread_B10_index
+
+
+    #or i in "${!SAMPLE1[@]}"; do
+    #    docker run --platform linux/amd64 -it --rm -v $(pwd):/data nanozoo/subread:2.0.2--53f5da6 subread-align -T 3 -t 1 -d 50 -D 600 -i /data/subread_index/index -r /data/bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq.gz -R /data/bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq.gz -o /data/subread_"${SAMPLE1[i]}"_PE.bam
+    #done
+
+    #mv *.bam *.vcf subread_output/
 
 }
 
+run_hisat_index(){
+ 
+    mkdir hisat2_output
+    mkdir hisat2_index
 
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data makaho/hisat2-zstd hisat2-build -p 20 /data/referencyjny_genom_b10/pb_b10_ill1.fasta /data/hisat2_index/hisat2_index
+
+#or i in "${!SAMPLE1[@]}"; do
+#    mv bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq.gz bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq
+#    mv bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq.gz bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq
+#done
+
+
+#for i in "${!SAMPLE1[@]}"; do
+#     docker run --platform linux/amd64 -it --rm -v $(pwd):/data makaho/hisat2-zstd hisat2 -p 3 -x /data/drosophila_hisat2_index/hisat2_index -1 /data/bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq -2 /data/bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq -S /data/hisat2_output/"${SAMPLE1[i]}".sam
+#done
+
+#for i in "${!SAMPLE1[@]}"; do
+#    mv bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq.gz
+#    mv bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq.gz
+#done                                      
+}
+
+run_hisat_mapping(){
+    
+}
 
 main(){
     #run_fastp
@@ -106,7 +145,10 @@ main(){
     #run_bfc_on_trimmomatic_data #działa bardzo długo - sprawdzić multithreading - wyjściowe pliki ponad 10GB
 ###########################    
     #run_multiqc_on_fastqc_output_trimmomatic_data
-}   #run_multiqc_on_fastp_output_trimmomatic_data
-
+    #run_multiqc_on_fastp_output_trimmomatic_data
+    #run_illumina_cleanup
+    #run_subread_index - nie działa Check the integrity of provided reference sequences ERROR: A fasta file cannot have a line longer than 1000 bytes. You need to split a very long line into many lines.
+    run_hisat_index
+}
 main
 
