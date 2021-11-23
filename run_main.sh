@@ -3,7 +3,7 @@
 SAMPLE1=(HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1)
 SAMPLE2=(HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R2)
 SAMPLES="HI.0640.005.Index_13.B_R1 HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
-
+SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
 
 #SAMPLE1=(HI.0635.008.Index_12.A_R1 HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_15.D_R1 HI.0640.005.Index_16.E_R1 HI.0640.006.Index_18.F_R1 HI.0640.006.Index_19.G_R1 HI.0640.006.Index_20.H_R1 HI.0640.006.Index_21.I_R1 )
 
@@ -115,25 +115,24 @@ run_hisat_index(){
     mkdir hisat2_index
 
     docker run --platform linux/amd64 -it --rm -v $(pwd):/data makaho/hisat2-zstd hisat2-build -p 20 /data/referencyjny_genom_b10/pb_b10_ill1.fasta /data/hisat2_index/hisat2_index
+     
+}
 
-#or i in "${!SAMPLE1[@]}"; do
-#    mv bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq.gz bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq
-#    mv bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq.gz bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq
-#done
+run_hisat_mapping_raw_files(){
+    #for i in "${!SAMPLE1[@]}"; do
+    #    mv bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq.gz bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq
+    #    mv bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq.gz bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq
+    #done
 
 
-#for i in "${!SAMPLE1[@]}"; do
-#     docker run --platform linux/amd64 -it --rm -v $(pwd):/data makaho/hisat2-zstd hisat2 -p 3 -x /data/drosophila_hisat2_index/hisat2_index -1 /data/bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq -2 /data/bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq -S /data/hisat2_output/"${SAMPLE1[i]}".sam
-#done
+    for i in "${!SAMPLE1[@]}"; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data makaho/hisat2-zstd hisat2 -p 20 -x /data/hisat2_index/hisat2_index -1 /data/"${SAMPLE1[i]}".fastq.gz -2 /data/"${SAMPLE2[i]}".fastq.gz -S /data/hisat2_output/"${SAMPLES_NAMES[i]}".sam
+    done
 
 #for i in "${!SAMPLE1[@]}"; do
 #    mv bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq bfc_corrected_trimmomatic_"${SAMPLE1[i]}".fastq.gz
 #    mv bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq bfc_corrected_trimmomatic_"${SAMPLE2[i]}".fastq.gz
-#done                                      
-}
-
-run_hisat_mapping(){
-    
+#done                             
 }
 
 main(){
@@ -148,7 +147,8 @@ main(){
     #run_multiqc_on_fastp_output_trimmomatic_data
     #run_illumina_cleanup
     #run_subread_index - nie działa Check the integrity of provided reference sequences ERROR: A fasta file cannot have a line longer than 1000 bytes. You need to split a very long line into many lines.
-    run_hisat_index
+    #run_hisat_index
+    run_hisat_mapping_raw_files
 }
 main
 
