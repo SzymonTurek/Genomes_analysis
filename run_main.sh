@@ -120,6 +120,12 @@ run_bowtie_index()(
 
 )
 
+
+run_bwa_index(){
+    mkdir bwa_index
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bwa:v0.7.17_cv1 bwa index  /data/referencyjny_genom_b10/pb_b10_ill1.fasta /data/bowtie_index/bowtie_index
+}
+
 run_hisat_mapping_raw_files(){
  
     mkdir hisat2_output
@@ -174,35 +180,35 @@ hisat_sam_to_bam(){
 
 sam_to_bam(){ # $1 = output folder of mapping
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1_output:/data staphb/samtools:1.13 samtools view -@ 20 -bS  /data/${sample}.sam  -o /data/${sample}.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 20 -bS  /data/${sample}.sam  -o /data/${sample}.bam
 
     done
 
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1_output:/data staphb/samtools:1.13 samtools sort -@ 20 /data/${sample}.bam  -o /data/${sample}_sorted.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools sort -@ 20 /data/${sample}.bam  -o /data/${sample}_sorted.bam
 
     done
 
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1_output:/data staphb/samtools:1.13 samtools index -@ 20 /data/${sample}_sorted.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools index -@ 20 /data/${sample}_sorted.bam
 
     done
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1_output:/data staphb/samtools:1.13 samtools idxstats -@ 20 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools idxstats -@ 20 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
 
     done
 
-    mv *.txt $1_output
+    mv *.txt $1
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1_output:/data staphb/samtools:1.13 samtools stats -@ 20 /data/${sample}_sorted.bam > ${sample}_stats.txt
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools stats -@ 20 /data/${sample}_sorted.bam > ${sample}_stats.txt
 
     done
 
-    mv *.txt $1_output
+    mv *.txt $1
 
 
     
@@ -228,7 +234,8 @@ main(){
     #run_hisat_mapping_raw_files
     #hisat_sam_to_bam
     #run_bowtie_index
-    run_bowtie_mapping_raw_files
+    #run_bowtie_mapping_raw_files
+    sam_to_bam bowtie2_output_raw_data_B10
 }
 main
 
