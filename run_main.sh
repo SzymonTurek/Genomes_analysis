@@ -3,7 +3,8 @@
 SAMPLE1=(HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1)
 SAMPLE2=(HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R2)
 SAMPLES="HI.0640.005.Index_13.B_R1 HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
-SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
+#SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
+SAMPLES_NAMES=(HI.0640.005.Index_14.C)
 
 #SAMPLE1=(HI.0635.008.Index_12.A_R1 HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_15.D_R1 HI.0640.005.Index_16.E_R1 HI.0640.006.Index_18.F_R1 HI.0640.006.Index_19.G_R1 HI.0640.006.Index_20.H_R1 HI.0640.006.Index_21.I_R1 )
 
@@ -135,6 +136,40 @@ run_hisat_mapping_raw_files(){
 #done                             
 }
 
+hisat_sam_to_bam(){
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools view -@ 20 -bS  /data/${sample}.sam  -o /data/${sample}.bam
+
+    done
+
+
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools sort -@ 20 /data/${sample}.bam  -o /data/${sample}_sorted.bam
+
+    done
+
+
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools index -@ 20 /data/${sample}_sorted.bam
+
+    done
+
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools idxstats -@ 20 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
+
+    done
+
+    mv *.txt hisat2_output
+
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools stats -@ 20 /data/${sample}_sorted.bam > ${sample}_stats.txt
+
+    done
+
+    mv *.txt hisat2_output
+
+}
+
 main(){
     #run_fastp
     #run_fastqc_on_fastp_data
@@ -146,9 +181,12 @@ main(){
     #run_multiqc_on_fastqc_output_trimmomatic_data
     #run_multiqc_on_fastp_output_trimmomatic_data
     #run_illumina_cleanup
+ #########################   
     #run_subread_index - nie działa Check the integrity of provided reference sequences ERROR: A fasta file cannot have a line longer than 1000 bytes. You need to split a very long line into many lines.
+ #########################   
     #run_hisat_index
-    run_hisat_mapping_raw_files
+    #run_hisat_mapping_raw_files
+    hisat_sam_to_bam
 }
 main
 
