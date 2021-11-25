@@ -123,7 +123,8 @@ run_bowtie_index()(
 
 run_bwa_index(){
     mkdir bwa_index
-    docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bwa:v0.7.17_cv1 bwa index  /data/referencyjny_genom_b10/pb_b10_ill1.fasta /data/bowtie_index/bowtie_index
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bwa:v0.7.17_cv1 bwa index  /data/referencyjny_genom_b10/pb_b10_ill1.fasta 
+    mv referencyjny_genom_b10/*.ann referencyjny_genom_b10/*.amb referencyjny_genom_b10/*.bwt referencyjny_genom_b10/*.pac referencyjny_genom_b10/*.sa bwa_index
 }
 
 run_hisat_mapping_raw_files(){
@@ -235,7 +236,8 @@ main(){
     #hisat_sam_to_bam
     #run_bowtie_index
     #run_bowtie_mapping_raw_files
-    sam_to_bam bowtie2_output_raw_data_B10
+    #sam_to_bam bowtie2_output_raw_data_B10
+    run_bwa_index
 }
 main
 
