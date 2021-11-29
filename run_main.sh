@@ -247,7 +247,8 @@ main(){
     #sam_to_bam bowtie2_output_raw_data_B10
     #run_bwa_index
     #run_bwa_mapping_raw_files
-    sam_to_bam bwa_output_raw_data_B10
+    #sam_to_bam bwa_output_raw_data_B10
+    rm bwa_output_raw_data_B10/*sam
 }
 main
 
