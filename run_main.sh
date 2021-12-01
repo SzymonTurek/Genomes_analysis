@@ -167,10 +167,18 @@ run_star_mapping_raw_files(){
     mkdir star_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
     docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads --genomeLoad  LoadAndKeep --readFilesCommand zcat --genomeDir /data/star_index --readFilesIn /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz --runThreadN 20 --outFileNamePrefix /data/star_output_raw_data_B10/"${SAMPLES_NAMES[i]}"
-done
+    done
 
 }
 
+
+run_bbmap_mapping_raw_files(){
+    mkdir bbmap_output_raw_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data cathrine98/bbmap bbmap.sh slow=t threads=20 in1=/data/"${SAMPLE1[i]}".fastq.gz in2=/data/"${SAMPLE2[i]}".fastq.gz out=/data/bbmap_output_raw_data_B10/"${SAMPLES_NAMES[i]}".sam ref=/data/referencyjny_genom_b10/pb_b10_ill1.fasta nodisk
+    done
+
+}
 
 
 hisat_sam_to_bam(){
@@ -276,7 +284,7 @@ star_sam_to_bam(){
     mv *.txt $1
 
 
-}
+
 }
 
 main(){
@@ -304,7 +312,8 @@ main(){
     #sam_to_bam bwa_output_raw_data_B10
     #rm bwa_output_raw_data_B10/*sam
     #run_star_index
-    run_star_mapping_raw_files
+    #run_star_mapping_raw_files
+    run_bbmap_mapping_raw_files
     #star_sam_to_bam star_output_raw_data_B10
 }
 main
