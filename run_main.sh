@@ -252,37 +252,44 @@ sam_to_bam(){ # $1 = output folder of mapping
 }
 
 star_sam_to_bam(){
-      for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 20 -bS  /data/${sample}*.sam  -o /data/${sample}.bam
+    
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/star_output_raw_data_B10:/data staphb/samtools:1.13 samtools view -@ 15 -bS  /data/${sample}Aligned.out.sam  -o /data/${sample}.bam
 
     done
 
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools sort -@ 20 /data/${sample}.bam  -o /data/${sample}_sorted.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/star_output_raw_data_B10:/data staphb/samtools:1.13 samtools sort -@ 15 /data/${sample}.bam  -o /data/${sample}_sorted.bam
 
     done
 
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools index -@ 20 /data/${sample}_sorted.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/star_output_raw_data_B10:/data staphb/samtools:1.13 samtools index -@ 15 /data/${sample}_sorted.bam
 
     done
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools idxstats -@ 20 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/star_output_raw_data_B10:/data staphb/samtools:1.13 samtools idxstats -@ 15 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
 
     done
 
-    mv *.txt $1
+    mv *.txt star_output_raw_data_B10
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools stats -@ 20 /data/${sample}_sorted.bam > ${sample}_stats.txt
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/star_output_raw_data_B10:/data staphb/samtools:1.13 samtools stats -@ 15 /data/${sample}_sorted.bam > ${sample}_stats.txt
 
     done
 
-    mv *.txt $1
+    mv *.txt star_output_raw_data_B10
 
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/star_output_raw_data_B10:/data staphb/samtools:1.13 samtools flagstat -@ 15 /data/${sample}_sorted.bam > ${sample}_flagstat.txt
+
+    done
+
+    mv *.txt star_output_raw_data_B10
 
 
 }
@@ -313,8 +320,9 @@ main(){
     #rm bwa_output_raw_data_B10/*sam
     #run_star_index
     #run_star_mapping_raw_files
-    run_bbmap_mapping_raw_files
+    #run_bbmap_mapping_raw_files
     #star_sam_to_bam star_output_raw_data_B10
+    star_sam_to_bam
 }
 main
 
