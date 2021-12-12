@@ -175,7 +175,7 @@ run_star_mapping_raw_files(){
 run_bbmap_mapping_raw_files(){
     mkdir bbmap_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
-    docker run --platform linux/amd64 -it --rm -v $(pwd):/data cathrine98/bbmap bbmap.sh slow=t threads=20 in1=/data/"${SAMPLE1[i]}".fastq.gz in2=/data/"${SAMPLE2[i]}".fastq.gz out=/data/bbmap_output_raw_data_B10/"${SAMPLES_NAMES[i]}".sam ref=/data/referencyjny_genom_b10/pb_b10_ill1.fasta nodisk
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data cathrine98/bbmap bbmap.sh slow=f threads=20 in1=/data/"${SAMPLE1[i]}".fastq.gz in2=/data/"${SAMPLE2[i]}".fastq.gz out=/data/bbmap_output_raw_data_B10/"${SAMPLES_NAMES[i]}".sam ref=/data/referencyjny_genom_b10/pb_b10_ill1.fasta nodisk
     done
 
 }
