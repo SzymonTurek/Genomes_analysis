@@ -1,9 +1,20 @@
 #!/bin/bash
 
-SAMPLE1=(HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1)
-SAMPLE2=(HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R2)
-SAMPLES="HI.0640.005.Index_13.B_R1 HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
-SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
+#SAMPLE1=(HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1)
+#SAMPLE2=(HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R2)
+#SAMPLES="HI.0640.005.Index_13.B_R1 HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
+#SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
+
+
+
+
+SAMPLE1=(HI.0640.005.Index_14.C_R1)
+SAMPLE2=( HI.0640.005.Index_14.C_R2)
+SAMPLES="HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
+SAMPLES_NAMES=(HI.0640.005.Index_14.C)
+
+
+
 
 
 #SAMPLE1=(HI.0635.008.Index_12.A_R1 HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_15.D_R1 HI.0640.005.Index_16.E_R1 HI.0640.006.Index_18.F_R1 HI.0640.006.Index_19.G_R1 HI.0640.006.Index_20.H_R1 HI.0640.006.Index_21.I_R1 )
@@ -22,7 +33,7 @@ run_fastp () {
     mkdir fastp_output_genome
 
     for i in "${!SAMPLE1[@]}"; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd):/data nanozoo/fastp:0.20.0--78a7c63 fastp -w 16 -i /data/"${SAMPLE1[i]}".fastq.gz -I /data/"${SAMPLE2[i]}".fastq.gz -o /data/fastp_output_genome/out_"${SAMPLE1[i]}".fastq.gz -O /data/fastp_output_genome/out_"${SAMPLE2[i]}".fastq.gz    
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data nanozoo/fastp:0.20.0--78a7c63 fastp -w 15 -i /data/"${SAMPLE1[i]}".fastq.gz -I /data/"${SAMPLE2[i]}".fastq.gz -o /data/fastp_output_genome/out_"${SAMPLE1[i]}".fastq.gz -O /data/fastp_output_genome/out_"${SAMPLE2[i]}".fastq.gz    
 
     done
 }
@@ -33,7 +44,7 @@ run_fastqc_on_fastp_data (){
     mkdir fastqc_output_fastp_data
  
     for sample in $SAMPLES; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd):/data  staphb/fastqc:0.11.9 fastqc -t 20 -o /data/fastqc_output_fastp_data /data/fastp_output_genome/out_${sample}.fastq.gz
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data  staphb/fastqc:0.11.9 fastqc -t 15 -o /data/fastqc_output_fastp_data /data/fastp_output_genome/out_${sample}.fastq.gz
     done
 }
 
@@ -54,7 +65,7 @@ run_fastqc_on_trimmomatic_data(){
     mkdir fastqc_output_trimmomatic_data
 
     for sample in $SAMPLES; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd):/data  staphb/fastqc:0.11.9 fastqc -t 20  -o /data/fastqc_output_trimmomatic_data /data/trimmomatic_output/${sample}.trim.fastq.gz
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data  staphb/fastqc:0.11.9 fastqc -t 15  -o /data/fastqc_output_trimmomatic_data /data/trimmomatic_output/${sample}.trim.fastq.gz
     done
 }
 
@@ -66,7 +77,7 @@ run_bfc_on_trimmomatic_data(){
     
    
     for sample in $SAMPLES; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd):/data jfroula/bfc:181 bfc -s 180m -t16 /data/trimmomatic_output/${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}_1.fastq.gz
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data jfroula/bfc:181 bfc -s 180m -t 15 /data/trimmomatic_output/${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}_1.fastq.gz
     done
     
     mv bfc_corrected_trimmomatic_*.fastq.gz bfc_output/bfc_with_trimmomatic_output
@@ -88,7 +99,7 @@ run_multiqc_on_fastp_output_trimmomatic_data(){
 
 run_illumina_cleanup(){
     mkdir illumina_cleanup_output
-    ./illumina-cleanup/bin/illumina-cleanup --fastqs /media/szymon/Dysk_1/comp_genomics/genomics_analysis4/IC_fastqs.txt --fastqs /media/szymon/Dysk_1/Genomes_analysis/illumina-cleanup/bin/IC_fastqs.txt --max_cpus 10
+    ./illumina-cleanup/bin/illumina-cleanup --fastqs /media/szymon/Dysk_1/comp_genomics/genomics_analysis4/IC_fastqs.txt --fastqs /media/szymon/Dysk_1/Genomes_analysis/illumina-cleanup/bin/IC_fastqs.txt --max_cpus 8
     mv /media/szymon/Dysk_1/Genomes_analysis/illumina-cleanup/bin/*_IC /media/szymon/Dysk_1/Genomes_analysis/illumina_cleanup_output
     # mv /media/szymon/Dysk_1/Genomes_analysis/*_IC /media/szymon/Dysk_1/Genomes_analysis/illumina_cleanup_output
 }
@@ -108,7 +119,7 @@ run_hisat_index(){
     
     mkdir hisat2_index
 
-    docker run --platform linux/amd64 -it --rm -v $(pwd):/data makaho/hisat2-zstd hisat2-build -p 20 /data/referencyjny_genom_b10/pb_b10_ill1.fasta /data/hisat2_index/hisat2_index
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data makaho/hisat2-zstd hisat2-build -p 15 /data/referencyjny_genom_b10/pb_b10_ill1.fasta /data/hisat2_index/hisat2_index
      
 }
 
@@ -132,7 +143,7 @@ run_bwa_index(){
 
 run_star_index(){
     mkdir star_index
-    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runThreadN 20 --runMode genomeGenerate --genomeDir /data/star_index --genomeFastaFiles /data/referencyjny_genom_b10/pb_b10_ill1.fasta  #--sjdbGTFfile /data/referencyjny_genom_b10/annotation.gff 
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runThreadN 15 --runMode genomeGenerate --genomeDir /data/star_index --genomeFastaFiles /data/referencyjny_genom_b10/pb_b10_ill1.fasta  #--sjdbGTFfile /data/referencyjny_genom_b10/annotation.gff 
 
 }
 
@@ -143,7 +154,7 @@ run_hisat_mapping_raw_files(){
  
     mkdir hisat2_output
     for i in "${!SAMPLE1[@]}"; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd):/data makaho/hisat2-zstd hisat2 -p 20 -x /data/hisat2_index/hisat2_index -1 /data/"${SAMPLE1[i]}".fastq.gz -2 /data/"${SAMPLE2[i]}".fastq.gz -S /data/hisat2_output/"${SAMPLES_NAMES[i]}".sam
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data makaho/hisat2-zstd hisat2 -p 15 -x /data/hisat2_index/hisat2_index -1 /data/"${SAMPLE1[i]}".fastq.gz -2 /data/"${SAMPLE2[i]}".fastq.gz -S /data/hisat2_output/"${SAMPLES_NAMES[i]}".sam
     done
 
 }
@@ -151,14 +162,14 @@ run_hisat_mapping_raw_files(){
 run_bowtie_mapping_raw_files(){
     mkdir bowtie2_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2 -p 20 -t -x /data/bowtie_index/bowtie_index -1 /data/"${SAMPLE1[i]}".fastq.gz -2 /data/"${SAMPLE2[i]}".fastq.gz -S /data/bowtie2_output_raw_data_B10/"${SAMPLES_NAMES[i]}".sam
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2 -p 15 -t -x /data/bowtie_index/bowtie_index -1 /data/"${SAMPLE1[i]}".fastq.gz -2 /data/"${SAMPLE2[i]}".fastq.gz -S /data/bowtie2_output_raw_data_B10/"${SAMPLES_NAMES[i]}".sam
     done
 }
 
 run_bwa_mapping_raw_files(){
     mkdir bwa_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
-    docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bwa:v0.7.17_cv1 bwa mem /data/referencyjny_genom_b10/pb_b10_ill1.fasta -t 20 /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz -o /data/bwa_output_raw_data_B10/"${SAMPLES_NAMES[i]}".sam
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bwa:v0.7.17_cv1 bwa mem /data/referencyjny_genom_b10/pb_b10_ill1.fasta -t 15 /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz -o /data/bwa_output_raw_data_B10/"${SAMPLES_NAMES[i]}".sam
     done
 }
 
@@ -166,7 +177,7 @@ run_bwa_mapping_raw_files(){
 run_star_mapping_raw_files(){
     mkdir star_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
-    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads --genomeLoad  LoadAndKeep --readFilesCommand zcat --genomeDir /data/star_index --readFilesIn /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz --runThreadN 20 --outFileNamePrefix /data/star_output_raw_data_B10/"${SAMPLES_NAMES[i]}"
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads --genomeLoad  LoadAndKeep --readFilesCommand zcat --genomeDir /data/star_index --readFilesIn /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz --runThreadN 15 --outFileNamePrefix /data/star_output_raw_data_B10/"${SAMPLES_NAMES[i]}"
     done
 
 }
@@ -175,7 +186,7 @@ run_star_mapping_raw_files(){
 run_bbmap_mapping_raw_files(){
     mkdir bbmap_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
-    docker run --platform linux/amd64 -it --rm -v $(pwd):/data cathrine98/bbmap bbmap.sh slow=f threads=20 in1=/data/"${SAMPLE1[i]}".fastq.gz in2=/data/"${SAMPLE2[i]}".fastq.gz out=/data/bbmap_output_raw_data_B10/"${SAMPLES_NAMES[i]}".sam ref=/data/referencyjny_genom_b10/pb_b10_ill1.fasta nodisk
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data cathrine98/bbmap bbmap.sh slow=f threads=15 in1=/data/"${SAMPLE1[i]}".fastq.gz in2=/data/"${SAMPLE2[i]}".fastq.gz out=/data/bbmap_output_raw_data_B10/"${SAMPLES_NAMES[i]}".sam ref=/data/referencyjny_genom_b10/pb_b10_ill1.fasta nodisk
     done
 
 }
@@ -183,31 +194,31 @@ run_bbmap_mapping_raw_files(){
 
 hisat_sam_to_bam(){
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools view -@ 20 -bS  /data/${sample}.sam  -o /data/${sample}.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools view -@ 15 -bS  /data/${sample}.sam  -o /data/${sample}.bam
 
     done
 
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools sort -@ 20 /data/${sample}.bam  -o /data/${sample}_sorted.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools sort -@ 15 /data/${sample}.bam  -o /data/${sample}_sorted.bam
 
     done
 
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools index -@ 20 /data/${sample}_sorted.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools index -@ 15 /data/${sample}_sorted.bam
 
     done
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools idxstats -@ 20 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools idxstats -@ 15 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
 
     done
 
     mv *.txt hisat2_output
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools stats -@ 20 /data/${sample}_sorted.bam > ${sample}_stats.txt
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools stats -@ 15 /data/${sample}_sorted.bam > ${sample}_stats.txt
 
     done
 
@@ -217,31 +228,31 @@ hisat_sam_to_bam(){
 
 sam_to_bam(){ # $1 = output folder of mapping
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 20 -bS  /data/${sample}.sam  -o /data/${sample}.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 15 -bS  /data/${sample}.sam  -o /data/${sample}.bam
 
     done
 
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools sort -@ 20 /data/${sample}.bam  -o /data/${sample}_sorted.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools sort -@ 15 /data/${sample}.bam  -o /data/${sample}_sorted.bam
 
     done
 
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools index -@ 20 /data/${sample}_sorted.bam
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools index -@ 15 /data/${sample}_sorted.bam
 
     done
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools idxstats -@ 20 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools idxstats -@ 15 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
 
     done
 
     mv *.txt $1
 
     for sample in ${SAMPLES_NAMES}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools stats -@ 20 /data/${sample}_sorted.bam > ${sample}_stats.txt
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools stats -@ 15 /data/${sample}_sorted.bam > ${sample}_stats.txt
 
     done
 
@@ -318,11 +329,15 @@ main(){
     #run_bwa_mapping_raw_files
     #sam_to_bam bwa_output_raw_data_B10
     #rm bwa_output_raw_data_B10/*sam
+    
     #run_star_index
     #run_star_mapping_raw_files
+    star_sam_to_bam
+    rm star_output_raw_data_B10/*sam
+
     #run_bbmap_mapping_raw_files
     #star_sam_to_bam star_output_raw_data_B10
-    star_sam_to_bam
+    
 }
 main
 
