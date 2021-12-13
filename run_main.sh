@@ -224,6 +224,13 @@ hisat_sam_to_bam(){
 
     mv *.txt hisat2_output
 
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/hisat2_output:/data staphb/samtools:1.13 samtools flagstat -@ 15 /data/${sample}_sorted.bam > ${sample}_flagstat.txt
+
+    done
+
+    mv *.txt star_output_raw_data_B10
+
 }
 
 sam_to_bam(){ # $1 = output folder of mapping
