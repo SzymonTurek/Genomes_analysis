@@ -85,6 +85,24 @@ run_bfc_on_trimmomatic_data(){
 
 }
 
+
+run_bfc_on_raw_data(){
+
+    mkdir -p bfc_output/bfc_with_raw_files
+    
+    
+   
+    for sample in $SAMPLES; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data jfroula/bfc:181 bfc -s 180m -t 15 /data/${sample}.fastq.gz > bfc_corrected_raw_${sample}.fastq.gz
+    done
+    
+    mv bfc_corrected_*.fastq.gz bfc_output/bfc_with_raw_files
+    
+
+}
+
+
+
 run_multiqc_on_fastqc_output_trimmomatic_data(){
     docker run -t -v $(pwd)/fastqc_output_trimmomatic_data:`pwd` -w `pwd` ewels/multiqc:v1.11
 
@@ -326,6 +344,7 @@ main(){
     #run_fastqc_on_trimmomatic_data
 ###########################
     #run_bfc_on_trimmomatic_data #działa bardzo długo - sprawdzić multithreading - wyjściowe pliki ponad 10GB
+    run_bfc_on_raw_data
 ###########################    
     #run_multiqc_on_fastqc_output_trimmomatic_data
     #run_multiqc_on_fastp_output_trimmomatic_data
@@ -346,8 +365,8 @@ main(){
     
     #run_star_index
     #run_star_mapping_raw_files
-    star_sam_to_bam
-    rm star_output_raw_data_B10/*sam
+    #star_sam_to_bam
+    #rm star_output_raw_data_B10/*sam
 
     #run_bbmap_mapping_raw_files
     #star_sam_to_bam star_output_raw_data_B10
