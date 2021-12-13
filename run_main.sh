@@ -4,7 +4,7 @@ SAMPLE1=(HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1)
 SAMPLE2=(HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R2)
 SAMPLES="HI.0640.005.Index_13.B_R1 HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
 SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
-
+SAMPLES_NAMES_str="HI.0640.005.Index_13.B HI.0640.005.Index_14.C"
 
 
 
@@ -211,6 +211,15 @@ run_star_mapping_fastp_files(){
 }
 
 
+run_star_mapping_ic_files(){
+    mkdir star_output_ic_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads  --readFilesCommand zcat --genomeDir /data/star_index --readFilesIn /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"_IC/"${SAMPLES_NAMES[i]}"_IC_R1.fastq.gz /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"_IC/"${SAMPLES_NAMES[i]}"_IC_R2.fastq.gz --runThreadN 15 --outFileNamePrefix /data/star_output_ic_data_B10/"${SAMPLES_NAMES[i]}"
+    done
+
+}
+
+
 run_bbmap_mapping_raw_files(){
     mkdir bbmap_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
@@ -304,31 +313,31 @@ sam_to_bam(){ # $1 = output folder of mapping
     
 }
 star_sam_to_bam2(){ # $1 = output folder of mapping
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 15 -bS  /data/${sample}Aligned.out.sam  -o /data/${sample}.bam
 
     done
 
 
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools sort -@ 15 /data/${sample}.bam  -o /data/${sample}_sorted.bam
 
     done
 
 
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools index -@ 15 /data/${sample}_sorted.bam
 
     done
 
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools idxstats -@ 15 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
 
     done
 
     mv *.txt $1
 
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools stats -@ 15 /data/${sample}_sorted.bam > ${sample}_stats.txt
 
     done
@@ -336,7 +345,7 @@ star_sam_to_bam2(){ # $1 = output folder of mapping
     mv *.txt $1
 
     
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools flagstat -@ 15 /data/${sample}_sorted.bam > ${sample}_flagstat.txt
 
     done
@@ -420,7 +429,11 @@ main(){
     #rm star_output_raw_data_B10/*sam
 
     #run_star_mapping_fastp_files
-    star_sam_to_bam2 star_output_fastp_data_B10
+    #star_sam_to_bam2 star_output_fastp_data_B10
+    #rm star_output_fastp_data_B10/*sam
+
+   # run_star_mapping_ic_files
+    star_sam_to_bam2 star_output_ic_data_B10
 
 
 ######################################
