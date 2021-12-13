@@ -1,17 +1,17 @@
 #!/bin/bash
 
-#SAMPLE1=(HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1)
-#SAMPLE2=(HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R2)
-#SAMPLES="HI.0640.005.Index_13.B_R1 HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
-#SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
+SAMPLE1=(HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1)
+SAMPLE2=(HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R2)
+SAMPLES="HI.0640.005.Index_13.B_R1 HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
+SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
 
 
 
 
-SAMPLE1=(HI.0640.005.Index_14.C_R1)
-SAMPLE2=( HI.0640.005.Index_14.C_R2)
-SAMPLES="HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
-SAMPLES_NAMES=(HI.0640.005.Index_14.C)
+#SAMPLE1=(HI.0640.005.Index_14.C_R1)
+#SAMPLE2=( HI.0640.005.Index_14.C_R2)
+#SAMPLES="HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
+#SAMPLES_NAMES=(HI.0640.005.Index_14.C)
 
 
 
@@ -201,6 +201,16 @@ run_star_mapping_raw_files(){
 }
 
 
+
+run_star_mapping_fastp_files(){
+    mkdir star_output_fastp_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads  --readFilesCommand zcat --genomeDir /data/star_index --readFilesIn /data/fastp_output_genome/out_"${SAMPLE1[i]}".fastq.gz /data/fastp_output_genome/out_"${SAMPLE2[i]}".fastq.gz --runThreadN 15 --outFileNamePrefix /data/star_output_fastp_data_B10/"${SAMPLES_NAMES[i]}"
+    done
+
+}
+
+
 run_bbmap_mapping_raw_files(){
     mkdir bbmap_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
@@ -293,7 +303,48 @@ sam_to_bam(){ # $1 = output folder of mapping
 
     
 }
+star_sam_to_bam2(){ # $1 = output folder of mapping
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 15 -bS  /data/${sample}Aligned.out.sam  -o /data/${sample}.bam
 
+    done
+
+
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools sort -@ 15 /data/${sample}.bam  -o /data/${sample}_sorted.bam
+
+    done
+
+
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools index -@ 15 /data/${sample}_sorted.bam
+
+    done
+
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools idxstats -@ 15 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
+
+    done
+
+    mv *.txt $1
+
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools stats -@ 15 /data/${sample}_sorted.bam > ${sample}_stats.txt
+
+    done
+
+    mv *.txt $1
+
+    
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools flagstat -@ 15 /data/${sample}_sorted.bam > ${sample}_flagstat.txt
+
+    done
+
+    mv *.txt $1
+
+    
+}
 star_sam_to_bam(){
     
     for sample in ${SAMPLES_NAMES}; do
@@ -344,7 +395,7 @@ main(){
     #run_fastqc_on_trimmomatic_data
 ###########################
     #run_bfc_on_trimmomatic_data #działa bardzo długo - sprawdzić multithreading - wyjściowe pliki ponad 10GB
-    run_bfc_on_raw_data
+    #run_bfc_on_raw_data
 ###########################    
     #run_multiqc_on_fastqc_output_trimmomatic_data
     #run_multiqc_on_fastp_output_trimmomatic_data
@@ -362,12 +413,17 @@ main(){
     #run_bwa_mapping_raw_files
     #sam_to_bam bwa_output_raw_data_B10
     #rm bwa_output_raw_data_B10/*sam
-    
+ ################################################   
     #run_star_index
     #run_star_mapping_raw_files
     #star_sam_to_bam
     #rm star_output_raw_data_B10/*sam
 
+    #run_star_mapping_fastp_files
+    star_sam_to_bam2 star_output_fastp_data_B10
+
+
+######################################
     #run_bbmap_mapping_raw_files
     #star_sam_to_bam star_output_raw_data_B10
     
