@@ -265,6 +265,13 @@ sam_to_bam(){ # $1 = output folder of mapping
 
     mv *.txt $1
 
+    
+    for sample in ${SAMPLES_NAMES}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools flagstat -@ 15 /data/${sample}_sorted.bam > ${sample}_flagstat.txt
+
+    done
+
+    mv *.txt $1
 
     
 }
