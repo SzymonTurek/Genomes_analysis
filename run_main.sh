@@ -12,7 +12,7 @@ SAMPLES_NAMES_str="HI.0640.005.Index_13.B HI.0640.005.Index_14.C"
 #SAMPLE2=( HI.0640.005.Index_14.C_R2)
 #SAMPLES="HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
 #SAMPLES_NAMES=(HI.0640.005.Index_14.C)
-
+#SAMPLES_NAMES_str="HI.0640.005.Index_14.C"
 
 
 
@@ -77,10 +77,10 @@ run_bfc_on_trimmomatic_data(){
     
    
     for sample in $SAMPLES; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd):/data jfroula/bfc:181 bfc -s 180m -t 15 /data/trimmomatic_output/${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}_1.fastq.gz
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data jfroula/bfc:181 bfc -s 180m -t 15 /data/trimmomatic_output/${sample}.trim.fastq.gz > bfc_corrected_trimmomatic_${sample}_1.fastq
     done
     
-    mv bfc_corrected_trimmomatic_*.fastq.gz bfc_output/bfc_with_trimmomatic_output
+    mv bfc_corrected_trimmomatic_*.fastq bfc_output/bfc_with_trimmomatic_output
     
 
 }
@@ -184,6 +184,18 @@ run_bowtie_mapping_raw_files(){
     done
 }
 
+
+run_bowtie_mapping_fastp_files(){
+    mkdir bowtie2_output_fastp_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2 -p 15 -t -x /data/bowtie_index/bowtie_index -1 /data/fastp_output_genome/out_"${SAMPLE1[i]}".fastq.gz -2 /data/fastp_output_genome/out_"${SAMPLE2[i]}".fastq.gz -S /data/bowtie2_output_fastp_data_B10/"${SAMPLES_NAMES[i]}".sam
+    done
+}
+
+
+
+
+
 run_bwa_mapping_raw_files(){
     mkdir bwa_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
@@ -218,6 +230,16 @@ run_star_mapping_ic_files(){
     done
 
 }
+
+
+run_star_mapping_bfc_raw_files(){
+    mkdir star_output_bfc_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads --genomeLoad  LoadAndKeep  --genomeDir /data/star_index --readFilesIn /data/bfc_output/bfc_with_raw_files/bfc_corrected_raw_"${SAMPLE1[i]}".fastq /data/bfc_output/bfc_with_raw_files/bfc_corrected_raw_"${SAMPLE2[i]}".fastq --runThreadN 15 --outFileNamePrefix /data/star_output_bfc_data_B10/"${SAMPLES_NAMES[i]}"
+    done
+
+}
+
 
 
 run_bbmap_mapping_raw_files(){
@@ -433,7 +455,15 @@ main(){
     #rm star_output_fastp_data_B10/*sam
 
    # run_star_mapping_ic_files
-    star_sam_to_bam2 star_output_ic_data_B10
+    #star_sam_to_bam2 star_output_ic_data_B10
+    #rm star_output_ic_data_B10/*sam
+################################################
+
+    run_bowtie_mapping_fastp_files
+
+    
+
+
 
 
 ######################################
