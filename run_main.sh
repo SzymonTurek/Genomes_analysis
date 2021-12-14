@@ -193,6 +193,13 @@ run_bowtie_mapping_fastp_files(){
 }
 
 
+run_bowtie_mapping_ic_files(){
+    mkdir bowtie2_output_ic_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2 -p 15 -t -x /data/bowtie_index/bowtie_index -1 /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"_IC/"${SAMPLES_NAMES[i]}"_IC_R1.fastq.gz -2 /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"_IC/"${SAMPLES_NAMES[i]}"_IC_R2.fastq.gz -S /data/bowtie2_output_ic_data_B10/"${SAMPLES_NAMES[i]}".sam
+    done
+}
+
 
 
 
@@ -459,10 +466,9 @@ main(){
     #rm star_output_ic_data_B10/*sam
 ################################################
 
-    run_bowtie_mapping_fastp_files
-
+    #run_bowtie_mapping_fastp_files
+    run_bowtie_mapping_ic_files
     
-
 
 
 
