@@ -171,11 +171,28 @@ run_star_index_chg(){
 
 }
 
+
+run_star_index_gy14(){
+    mkdir star_index_gy14
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runThreadN 15 --runMode genomeGenerate --genomeDir /data/star_index_gy14 --genomeFastaFiles /data/referencyjny_genom_gy14v2/Gy14_genome_v2.fa  #--sjdbGTFfile /data/referencyjny_genom_b10/annotation.gff 
+
+}
+
+
 run_bowtie_index_chg(){
     mkdir bowtie_index_chg
     
     docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2-build  /data/referencyjny_genom_china/ChineseLong_genome_v3.fa  /data/bowtie_index_chg/bowtie_index_chg
 }
+
+
+run_bowtie_index_gy14(){
+    mkdir bowtie_index_gy14
+    
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2-build  /data/referencyjny_genom_gy14v2/Gy14_genome_v2.fa   /data/bowtie_index_gy14/bowtie_index_gy14
+}
+
+
 run_hisat_mapping_raw_files(){
  
     mkdir hisat2_output
@@ -209,6 +226,20 @@ run_bowtie_mapping_ic_files(){
 }
 
 
+
+run_bowtie_mapping_raw_files_chg(){
+    mkdir bowtie2_output_raw_data_chg
+    for i in "${!SAMPLE1[@]}"; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2 -p 15 -t -x /data/bowtie_index_chg/bowtie_index_chg -1 /data/"${SAMPLE1[i]}".fastq.gz -2 /data/"${SAMPLE2[i]}".fastq.gz -S /data/bowtie2_output_raw_data_chg/"${SAMPLES_NAMES[i]}".sam
+    done
+}
+
+run_bowtie_mapping_raw_files_gy14(){
+    mkdir bowtie2_output_raw_data_gy14
+    for i in "${!SAMPLE1[@]}"; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2 -p 15 -t -x /data/bowtie_index_gy14/bowtie_index_gy14 -1 /data/"${SAMPLE1[i]}".fastq.gz -2 /data/"${SAMPLE2[i]}".fastq.gz -S /data/bowtie2_output_raw_data_gy14/"${SAMPLES_NAMES[i]}".sam
+    done
+}
 
 
 run_bwa_mapping_raw_files(){
@@ -270,6 +301,18 @@ run_star_mapping_raw_files_chg(){
     docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads --genomeLoad  LoadAndKeep --readFilesCommand zcat --genomeDir /data/star_index_chg --readFilesIn /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz --runThreadN 15 --outFileNamePrefix /data/star_output_raw_data_chg/"${SAMPLES_NAMES[i]}"
     done
 }
+
+
+run_star_mapping_raw_files_gy14(){
+    mkdir star_output_raw_data_gy14
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads --genomeLoad  LoadAndKeep --readFilesCommand zcat --genomeDir /data/star_index_gy14 --readFilesIn /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz --runThreadN 15 --outFileNamePrefix /data/star_output_raw_data_gy14/"${SAMPLES_NAMES[i]}"
+    done
+}
+
+
+
+
 run_bbmap_mapping_raw_files(){
     mkdir bbmap_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
@@ -499,7 +542,17 @@ main(){
     #run_star_index_chg
     #run_star_mapping_raw_files_chg
 
-    run_bowtie_index_chg
+    #run_bowtie_index_chg
+    #run_bowtie_mapping_raw_files_chg
+
+
+
+#################################################
+    #run_star_index_gy14
+    #run_star_mapping_raw_files_gy14
+
+    #run_bowtie_index_gy14
+    run_bowtie_mapping_raw_files_gy14
 ######################################
     #run_bbmap_mapping_raw_files
     #star_sam_to_bam star_output_raw_data_B10
