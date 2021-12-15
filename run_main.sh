@@ -165,9 +165,17 @@ run_star_index(){
 
 }
 
+run_star_index_chg(){
+    mkdir star_index_chg
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runThreadN 15 --runMode genomeGenerate --genomeDir /data/star_index_chg --genomeFastaFiles /data/referencyjny_genom_china/ChineseLong_genome_v3.fa  #--sjdbGTFfile /data/referencyjny_genom_b10/annotation.gff 
 
+}
 
-
+run_bowtie_index_chg(){
+    mkdir bowtie_index_chg
+    
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2-build  /data/referencyjny_genom_china/ChineseLong_genome_v3.fa  /data/bowtie_index_chg/bowtie_index_chg
+}
 run_hisat_mapping_raw_files(){
  
     mkdir hisat2_output
@@ -211,6 +219,15 @@ run_bwa_mapping_raw_files(){
 }
 
 
+
+run_bwa_mapping_fastp_files(){
+    mkdir bwa_output_fastp_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bwa:v0.7.17_cv1 bwa mem /data/referencyjny_genom_b10/pb_b10_ill1.fasta -t 15 /data/fastp_output_genome/out_"${SAMPLE1[i]}".fastq.gz /data/fastp_output_genome/out_"${SAMPLE2[i]}".fastq.gz -o /data/bwa_output_fastp_data_B10/"${SAMPLES_NAMES[i]}".sam
+    done
+}
+
+
 run_star_mapping_raw_files(){
     mkdir star_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
@@ -247,8 +264,12 @@ run_star_mapping_bfc_raw_files(){
 
 }
 
-
-
+run_star_mapping_raw_files_chg(){
+    mkdir star_output_raw_data_chg
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads --genomeLoad  LoadAndKeep --readFilesCommand zcat --genomeDir /data/star_index_chg --readFilesIn /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz --runThreadN 15 --outFileNamePrefix /data/star_output_raw_data_chg/"${SAMPLES_NAMES[i]}"
+    done
+}
 run_bbmap_mapping_raw_files(){
     mkdir bbmap_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
@@ -467,11 +488,18 @@ main(){
 ################################################
 
     #run_bowtie_mapping_fastp_files
-    run_bowtie_mapping_ic_files
+    #run_bowtie_mapping_ic_files
     
 
+################################################
 
+    #run_bwa_mapping_fastp_files za mało ramu w komputerze
 
+###############################################
+    #run_star_index_chg
+    #run_star_mapping_raw_files_chg
+
+    run_bowtie_index_chg
 ######################################
     #run_bbmap_mapping_raw_files
     #star_sam_to_bam star_output_raw_data_B10
