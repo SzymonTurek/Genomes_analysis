@@ -364,31 +364,31 @@ hisat_sam_to_bam(){
 }
 
 sam_to_bam(){ # $1 = output folder of mapping
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 15 -bS  /data/${sample}.sam  -o /data/${sample}.bam
 
     done
 
 
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools sort -@ 15 /data/${sample}.bam  -o /data/${sample}_sorted.bam
 
     done
 
 
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools index -@ 15 /data/${sample}_sorted.bam
 
     done
 
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools idxstats -@ 15 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
 
     done
 
     mv *.txt $1
 
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools stats -@ 15 /data/${sample}_sorted.bam > ${sample}_stats.txt
 
     done
@@ -396,7 +396,7 @@ sam_to_bam(){ # $1 = output folder of mapping
     mv *.txt $1
 
     
-    for sample in ${SAMPLES_NAMES}; do
+    for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools flagstat -@ 15 /data/${sample}_sorted.bam > ${sample}_flagstat.txt
 
     done
@@ -532,11 +532,14 @@ main(){
 
     #run_bowtie_mapping_fastp_files
     #run_bowtie_mapping_ic_files
-    
 
+    #sam_to_bam bowtie2_output_fastp_data_B10
+    #rm bowtie2_output_fastp_data_B10/*sam
+    #sam_to_bam bowtie2_output_ic_data_B10
+    #rm bowtie2_output_ic_data_B10/*sam
 ################################################
 
-    #run_bwa_mapping_fastp_files za mało ramu w komputerze
+    #run_bwa_mapping_fastp_files #za mało ramu w komputerze
 
 ###############################################
     #run_star_index_chg
@@ -552,7 +555,7 @@ main(){
     #run_star_mapping_raw_files_gy14
 
     #run_bowtie_index_gy14
-    run_bowtie_mapping_raw_files_gy14
+    #run_bowtie_mapping_raw_files_gy14
 ######################################
     #run_bbmap_mapping_raw_files
     #star_sam_to_bam star_output_raw_data_B10
