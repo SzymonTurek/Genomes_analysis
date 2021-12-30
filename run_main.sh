@@ -179,6 +179,22 @@ run_star_index_gy14(){
 }
 
 
+run_star_index_multiple(){
+    mkdir star_index_multiple
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runThreadN 15 --runMode genomeGenerate --genomeDir /data/star_index_multiple --genomeFastaFiles /data/referencyjny_genom_gy14v2/Gy14_genome_v2.fa /data/referencyjny_genom_china/ChineseLong_genome_v3.fa  #/data/referencyjny_genom_b10/pb_b10_ill1.fasta 
+
+}
+
+
+run_star_index_multiple_all(){
+    #problem poniewaz nie ulozone w chromosomy
+    mkdir star_index_multiple_all
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runThreadN 15 --runMode genomeGenerate --genomeDir /data/star_index_multiple_all --genomeFastaFiles /data/referencyjny_genom_gy14v2/Gy14_genome_v2.fa   /data/referencyjny_genom_b10/pb_b10_ill1.fasta /data/referencyjny_genom_china/ChineseLong_genome_v3.fa
+
+}
+
+
+
 run_bowtie_index_chg(){
     mkdir bowtie_index_chg
     
@@ -313,6 +329,16 @@ run_star_mapping_raw_files_gy14(){
 
 
 
+run_star_mapping_raw_files_multiple(){
+    mkdir star_output_raw_data_multiple
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexdobin/star:2.6.1d STAR --runMode alignReads --genomeLoad  LoadAndKeep --readFilesCommand zcat --genomeDir /data/star_index_multiple --readFilesIn /data/"${SAMPLE1[i]}".fastq.gz /data/"${SAMPLE2[i]}".fastq.gz --runThreadN 15 --outFileNamePrefix /data/star_output_raw_data_multiple/"${SAMPLES_NAMES[i]}"
+    done
+}
+
+
+
+
 run_bbmap_mapping_raw_files(){
     mkdir bbmap_output_raw_data_B10
     for i in "${!SAMPLE1[@]}"; do
@@ -406,44 +432,44 @@ sam_to_bam(){ # $1 = output folder of mapping
     
 }
 star_sam_to_bam2(){ # $1 = output folder of mapping
-    for sample in ${SAMPLES_NAMES_str}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 15 -bS  /data/${sample}Aligned.out.sam  -o /data/${sample}.bam
+    #for sample in ${SAMPLES_NAMES_str}; do
+    #    docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 15 -bS  /data/${sample}Aligned.out.sam  -o /data/${sample}.bam
 
-    done
-
-
-    for sample in ${SAMPLES_NAMES_str}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools sort -@ 15 /data/${sample}.bam  -o /data/${sample}_sorted.bam
-
-    done
+    #done
 
 
-    for sample in ${SAMPLES_NAMES_str}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools index -@ 15 /data/${sample}_sorted.bam
+    #for sample in ${SAMPLES_NAMES_str}; do
+    #    docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools sort -@ 15 /data/${sample}.bam  -o /data/${sample}_sorted.bam
 
-    done
+    #done
 
-    for sample in ${SAMPLES_NAMES_str}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools idxstats -@ 15 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
 
-    done
+    #for sample in ${SAMPLES_NAMES_str}; do
+    #    docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools index -@ 15 /data/${sample}_sorted.bam
 
-    mv *.txt $1
+    #done
+
+    #for sample in ${SAMPLES_NAMES_str}; do
+    #    docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools idxstats -@ 15 /data/${sample}_sorted.bam > ${sample}_idxstats.txt
+
+    #done
+
+    #mv *.txt $1
 
     for sample in ${SAMPLES_NAMES_str}; do
         docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools stats -@ 15 /data/${sample}_sorted.bam > ${sample}_stats.txt
 
     done
 
-    mv *.txt $1
+    #mv *.txt $1
 
     
-    for sample in ${SAMPLES_NAMES_str}; do
-        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools flagstat -@ 15 /data/${sample}_sorted.bam > ${sample}_flagstat.txt
+    #for sample in ${SAMPLES_NAMES_str}; do
+    #    docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools flagstat -@ 15 /data/${sample}_sorted.bam > ${sample}_flagstat.txt
 
-    done
+    #done
 
-    mv *.txt $1
+    #mv *.txt $1
 
     
 }
@@ -544,21 +570,34 @@ main(){
 ###############################################
     #run_star_index_chg
     #run_star_mapping_raw_files_chg
-
+    #star_sam_to_bam2 star_output_raw_data_chg
+    
     #run_bowtie_index_chg
     #run_bowtie_mapping_raw_files_chg
-
+    #sam_to_bam bowtie2_output_raw_data_chg
 
 
 #################################################
     #run_star_index_gy14
     #run_star_mapping_raw_files_gy14
-
+    #star_sam_to_bam2 star_output_raw_data_gy14
+    
     #run_bowtie_index_gy14
     #run_bowtie_mapping_raw_files_gy14
+    #sam_to_bam bowtie2_output_raw_data_gy14
+
+
+    #run_star_index_multiple
+    #run_star_index_multiple_all #nie dziala 
+    
+    #run_star_mapping_raw_files_multiple
+    #star_sam_to_bam2 star_output_raw_data_multiple
+
 ######################################
     #run_bbmap_mapping_raw_files
     #star_sam_to_bam star_output_raw_data_B10
+    
+
     
 }
 main
