@@ -526,16 +526,22 @@ variant_calling_faidx(){ #$1 = reference genome directory $2 = reference_genome_
 
 
 run_variant_calling(){  #$1 = output folder for bcf files $2 = reference genome directory $3 = reference_genome_name $4 = directory with input bam files
-    #mkdir $1
+    mkdir $1
     for sample in ${SAMPLES_NAMES_str}; do
-   #     docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bcftools:v1.9-1-deb_cv1 bcftools mpileup --threads 15  -O u -f /data/$2/$3 /data/$4/${sample}_sorted.bam -o /data/$1/bcftools_${sample}.bcf
-   # done
-
-    docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bcftools:v1.9-1-deb_cv1 bcftools call -v -c /data/$1/bcftools_${sample}.bcf -o  /data/$1/${sample}.vcf
-    #mv *.vcf $1
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bcftools:v1.9-1-deb_cv1 bcftools mpileup --threads 15  -O u -f /data/$2/$3 /data/$4/${sample}_sorted.bam -o /data/$1/bcftools_${sample}.bcf
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bcftools:v1.9-1-deb_cv1 bcftools call -v -c /data/$1/bcftools_${sample}.bcf -o  /data/$1/${sample}.vcf
+        mv *.vcf $1
     done
 }
 
+
+run_freebayes(){  #$1 = output folder for vcf files $2 = reference genome directory $3 = reference_genome_name $4 = directory with input bam files
+    mkdir $1
+    for sample in ${SAMPLES_NAMES_str}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/freebayes:v1.2.0-2-deb_cv1 freebayes -f /data/$2/$3 /data/$4/${sample}_sorted.bam > freebayes_${sample}.vcf
+        #mv *.vcf bowtie2_output
+    done
+}
 
 
 
@@ -624,7 +630,9 @@ main(){
 #######################################
 
     #variant_calling_faidx referencyjny_genom_b10 pb_b10_ill1.fasta
-    run_variant_calling vcf_out_bowtie2_B10 referencyjny_genom_b10 pb_b10_ill1.fasta bowtie2_output_raw_data_B10
+    #run_variant_calling vcf_out_bowtie2_B10 referencyjny_genom_b10 pb_b10_ill1.fasta bowtie2_output_raw_data_B10
+
+    run_freebayes freebayes_out_bowtie2_B10 referencyjny_genom_b10 pb_b10_ill1.fasta bowtie2_output_raw_data_B10
 }
 main
 
