@@ -632,7 +632,7 @@ main(){
     #variant_calling_faidx referencyjny_genom_b10 pb_b10_ill1.fasta
     #run_variant_calling vcf_out_bowtie2_B10 referencyjny_genom_b10 pb_b10_ill1.fasta bowtie2_output_raw_data_B10
 
-    run_freebayes freebayes_out_bowtie2_B10 referencyjny_genom_b10 pb_b10_ill1.fasta bowtie2_output_raw_data_B10
+    #run_freebayes freebayes_out_bowtie2_B10 referencyjny_genom_b10 pb_b10_ill1.fasta bowtie2_output_raw_data_B10
 }
 main
 
