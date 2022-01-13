@@ -1,18 +1,18 @@
 #!/bin/bash
 
-SAMPLE1=(HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1)
-SAMPLE2=(HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R2)
-SAMPLES="HI.0640.005.Index_13.B_R1 HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
-SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
-SAMPLES_NAMES_str="HI.0640.005.Index_13.B HI.0640.005.Index_14.C"
+#SAMPLE1=(HI.0640.005.Index_13.B_R1 HI.0640.005.Index_14.C_R1)
+#SAMPLE2=(HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R2)
+#SAMPLES="HI.0640.005.Index_13.B_R1 HI.0640.005.Index_13.B_R2 HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
+#SAMPLES_NAMES=(HI.0640.005.Index_13.B HI.0640.005.Index_14.C)
+#SAMPLES_NAMES_str="HI.0640.005.Index_13.B HI.0640.005.Index_14.C"
 
 
 
-#SAMPLE1=(HI.0640.005.Index_14.C_R1)
-#SAMPLE2=( HI.0640.005.Index_14.C_R2)
-#SAMPLES="HI.0640.005.Index_14.C_R1 HI.0640.005.Index_14.C_R2"
-#SAMPLES_NAMES=(HI.0640.005.Index_14.C)
-#SAMPLES_NAMES_str="HI.0640.005.Index_14.C"
+SAMPLE1=(HI.0635.008.Index_12.A_R1)
+SAMPLE2=( HI.0635.008.Index_12.A_R2)
+SAMPLES="HI.0635.008.Index_12.A_R1"
+SAMPLES_NAMES=(HI.0635.008.Index_12.A)
+SAMPLES_NAMES_str="HI.0635.008.Index_12.A"
 
 
 
@@ -117,9 +117,9 @@ run_multiqc_on_fastp_output_trimmomatic_data(){
 
 run_illumina_cleanup(){
     mkdir illumina_cleanup_output
-    ./illumina-cleanup/bin/illumina-cleanup --fastqs /media/szymon/Dysk_1/comp_genomics/genomics_analysis4/IC_fastqs.txt --fastqs /media/szymon/Dysk_1/Genomes_analysis/illumina-cleanup/bin/IC_fastqs.txt --max_cpus 8
-    mv /media/szymon/Dysk_1/Genomes_analysis/illumina-cleanup/bin/*_IC /media/szymon/Dysk_1/Genomes_analysis/illumina_cleanup_output
-    # mv /media/szymon/Dysk_1/Genomes_analysis/*_IC /media/szymon/Dysk_1/Genomes_analysis/illumina_cleanup_output
+    ./illumina-cleanup/bin/illumina-cleanup --fastqs /media/admin1/Dysk_1/Genomes_analysis/illumina-cleanup/bin/IC_fastqs.txt  --max_cpus 15
+    #mv /media/admin1/Dysk_1/Genomes_analysis/illumina-cleanup/bin/*_IC /media/admin1/Dysk_1/Genomes_analysis/illumina_cleanup_output
+    #mv /media/admin1/Dysk_1/Genomes_analysis/*_IC /media/szymon/Dysk_1/Genomes_analysis/illumina_cleanup_output #--fastqs /media/szymon/Dysk_1/Genomes_analysis/illumina-cleanup/bin/IC_fastqs.txt --fastqs /media/szymon/Dysk_1/comp_genomics/genomics_analysis4/IC_fastqs.txt
 }
 
 run_subread_index(){
@@ -274,6 +274,12 @@ run_bwa_mapping_fastp_files(){
     done
 }
 
+run_bwa_mapping_IC_files(){
+    mkdir bwa_output_IC_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bwa:v0.7.17_cv1 bwa mem /data/referencyjny_genom_b10/pb_b10_ill1.fasta -t 15 /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"_IC/"${SAMPLES_NAMES[i]}"_IC_R1.fastq.gz /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"_IC/"${SAMPLES_NAMES[i]}"_IC_R2.fastq.gz -o /data/bwa_output_IC_data_B10/"${SAMPLES_NAMES[i]}".sam
+    done
+}
 
 run_star_mapping_raw_files(){
     mkdir star_output_raw_data_B10
@@ -545,6 +551,7 @@ run_freebayes(){  #$1 = output folder for vcf files $2 = reference genome direct
 
 
 
+
 main(){
     #run_fastp
     #run_fastqc_on_fastp_data
@@ -570,6 +577,12 @@ main(){
     #run_bwa_mapping_raw_files
     #sam_to_bam bwa_output_raw_data_B10
     #rm bwa_output_raw_data_B10/*sam
+    
+    run_bwa_mapping_IC_files
+    run_bwa_mapping_fastp_files
+
+
+
  ################################################   
     #run_star_index
     #run_star_mapping_raw_files
@@ -636,3 +649,24 @@ main(){
 }
 main
 
+main2(){
+    run_fastp
+    run_illumina_cleanup
+
+    run_fastqc_on_fastp_data
+    run_bowtie_mapping_fastp_files
+    run_bowtie_mapping_ic_files
+
+    sam_to_bam bowtie2_output_fastp_data_B10
+    sam_to_bam bowtie2_output_ic_data_B10
+
+    run_bwa_mapping_raw_files
+
+
+
+
+    run_hisat_mapping_raw_files
+    hisat_sam_to_bam
+    run_bowtie_mapping_raw_files
+    sam_to_bam bowtie2_output_raw_data_B10
+}
