@@ -8,11 +8,20 @@
 
 
 
-SAMPLE1=(HI.0635.008.Index_12.A_R1)
-SAMPLE2=( HI.0635.008.Index_12.A_R2)
-SAMPLES="HI.0635.008.Index_12.A_R1"
-SAMPLES_NAMES=(HI.0635.008.Index_12.A)
-SAMPLES_NAMES_str="HI.0635.008.Index_12.A"
+#SAMPLE1=(HI.0635.008.Index_12.A_R1)
+#SAMPLE2=(HI.0635.008.Index_12.A_R2)
+#SAMPLES="HI.0635.008.Index_12.A_R1"
+#SAMPLES_NAMES=(HI.0635.008.Index_12.A)
+#SAMPLES_NAMES_str="HI.0635.008.Index_12.A"
+
+
+
+SAMPLE1=(HI.2714.006.Index_27.b10-1_R1 HI.2714.006.Index_2.b10-2_R1 HI.2714.006.Index_13.b10-3_R1)
+SAMPLE2=(HI.2714.006.Index_27.b10-1_R2 HI.2714.006.Index_2.b10-2_R2 HI.2714.006.Index_13.b10-3_R2)
+SAMPLES="HI.2714.006.Index_27.b10-1_R1 HI.2714.006.Index_2.b10-2_R1 HI.2714.006.Index_13.b10-3"
+SAMPLES_NAMES=(HI.2714.006.Index_27.b10-1 HI.2714.006.Index_2.b10-2 HI.2714.006.Index_13.b10-3)
+SAMPLES_NAMES_str="HI.2714.006.Index_27.b10-1 HI.2714.006.Index_2.b10-2 HI.2714.006.Index_13.b10-3"
+
 
 
 
@@ -241,7 +250,12 @@ run_bowtie_mapping_ic_files(){
     done
 }
 
-
+run_bowtie_mapping_ic_files_others(){
+    mkdir bowtie2_output_ic_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd):/data alexeyebi/bowtie2_samtools bowtie2 -p 15 -t -x /data/bowtie_index/bowtie_index -1 /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"/"${SAMPLES_NAMES[i]}"_R1.fastq.gz -2 /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"/"${SAMPLES_NAMES[i]}"_R2.fastq.gz -S /data/bowtie2_output_ic_data_B10/"${SAMPLES_NAMES[i]}".sam
+    done
+}
 
 run_bowtie_mapping_raw_files_chg(){
     mkdir bowtie2_output_raw_data_chg
@@ -278,6 +292,13 @@ run_bwa_mapping_IC_files(){
     mkdir bwa_output_IC_data_B10
     for i in "${!SAMPLE1[@]}"; do
     docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bwa:v0.7.17_cv1 bwa mem /data/referencyjny_genom_b10/pb_b10_ill1.fasta -t 15 /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"_IC/"${SAMPLES_NAMES[i]}"_IC_R1.fastq.gz /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"_IC/"${SAMPLES_NAMES[i]}"_IC_R2.fastq.gz -o /data/bwa_output_IC_data_B10/"${SAMPLES_NAMES[i]}".sam
+    done
+}
+
+run_bwa_mapping_IC_files_others(){
+    mkdir bwa_output_IC_data_B10
+    for i in "${!SAMPLE1[@]}"; do
+    docker run --platform linux/amd64 -it --rm -v $(pwd):/data biocontainers/bwa:v0.7.17_cv1 bwa mem /data/referencyjny_genom_b10/pb_b10_ill1.fasta -t 15 /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"/"${SAMPLES_NAMES[i]}"_R1.fastq.gz /data/illumina_cleanup_output/"${SAMPLES_NAMES[i]}"/"${SAMPLES_NAMES[i]}"_R2.fastq.gz -o /data/bwa_output_IC_data_B10/"${SAMPLES_NAMES[i]}".sam
     done
 }
 
@@ -437,6 +458,19 @@ sam_to_bam(){ # $1 = output folder of mapping
 
     
 }
+
+
+run_samtools_flagstat(){ # $1 = output folder of mapping
+    for sample in ${SAMPLES_NAMES_str}; do
+        docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools flagstat -@ 15 /data/${sample}_sorted.bam > ${sample}_flagstat.txt
+
+    done
+
+    mv *.txt $1
+
+
+}
+
 star_sam_to_bam2(){ # $1 = output folder of mapping
     #for sample in ${SAMPLES_NAMES_str}; do
     #    docker run --platform linux/amd64 -it --rm -v $(pwd)/$1:/data staphb/samtools:1.13 samtools view -@ 15 -bS  /data/${sample}Aligned.out.sam  -o /data/${sample}.bam
@@ -578,10 +612,14 @@ main(){
     #sam_to_bam bwa_output_raw_data_B10
     #rm bwa_output_raw_data_B10/*sam
     
-    run_bwa_mapping_IC_files
-    run_bwa_mapping_fastp_files
+    #run_bwa_mapping_IC_files
+    #run_bwa_mapping_fastp_files
 
+    sam_to_bam bwa_output_IC_data_B10
+    sam_to_bam bwa_output_fastp_data_B10
 
+    run_samtools_flagstat bwa_output_IC_data_B10
+    run_samtools_flagstat bwa_output_fastp_data_B10
 
  ################################################   
     #run_star_index
@@ -647,26 +685,54 @@ main(){
 
     #run_freebayes freebayes_out_bowtie2_B10 referencyjny_genom_b10 pb_b10_ill1.fasta bowtie2_output_raw_data_B10
 }
-main
+#main
 
 main2(){
-    run_fastp
+    #run_fastp
     run_illumina_cleanup
 
-    run_fastqc_on_fastp_data
-    run_bowtie_mapping_fastp_files
-    run_bowtie_mapping_ic_files
+    #run_fastqc_on_fastp_data
+    #run_bowtie_mapping_fastp_files
+    #run_bowtie_mapping_ic_files
+
+    #sam_to_bam bowtie2_output_fastp_data_B10
+    #sam_to_bam bowtie2_output_ic_data_B10
+
+    run_bwa_mapping_raw_files
+    run_bwa_mapping_IC_files
+    run_bwa_mapping_fastp_files
+
+
+
+    #run_hisat_mapping_raw_files
+    #hisat_sam_to_bam
+    #run_bowtie_mapping_raw_files
+    #sam_to_bam bowtie2_output_raw_data_B10
+}
+
+main3(){
+    #run_fastp
+    #run_fastqc_on_fastp_data
+    #run_bowtie_mapping_fastp_files
+    #run_bowtie_mapping_ic_files
+    #run_bowtie_mapping_ic_files_others
+    #run_bowtie_mapping_fastp_files
+    #run_illumina_cleanup
+
+    #run_bwa_mapping_raw_files
+    #run_bwa_mapping_IC_files
+    #run_bwa_mapping_fastp_files
+    
+    #run_bwa_mapping_IC_files_others
+
+    #sam_to_bam bwa_output_IC_data_B10
+    #sam_to_bam bwa_output_fastp_data_B10
 
     sam_to_bam bowtie2_output_fastp_data_B10
     sam_to_bam bowtie2_output_ic_data_B10
 
-    run_bwa_mapping_raw_files
+    #run_samtools_flagstat bwa_output_IC_data_B10
+    #run_samtools_flagstat bwa_output_fastp_data_B10
 
-
-
-
-    run_hisat_mapping_raw_files
-    hisat_sam_to_bam
-    run_bowtie_mapping_raw_files
-    sam_to_bam bowtie2_output_raw_data_B10
 }
+main3
